@@ -2,21 +2,15 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { clearAuth, getUser, isLoggedIn, type StoredUser } from "@/lib/auth";
+import { clearAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/useAuth";
 import { useTheme } from "./ThemeProvider";
 
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { toggle, theme } = useTheme();
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [user, setUser] = useState<StoredUser | null>(null);
-
-  useEffect(() => {
-    setLoggedIn(isLoggedIn());
-    setUser(getUser());
-  }, [pathname]);
+  const { loggedIn, user } = useAuth();
 
   const logout = () => {
     clearAuth();
@@ -25,7 +19,7 @@ export function Navbar() {
 
   return (
     <nav className="nav container">
-      <Link href="/" className="nav-brand">
+      <Link href={loggedIn ? "/dashboard" : "/"} className="nav-brand">
         UptimeLab
       </Link>
       <div className="nav-links">

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { GuestGuard } from "@/components/GuestGuard";
 import { api } from "@/lib/api";
 import { saveAuth } from "@/lib/auth";
 
@@ -31,6 +32,7 @@ export default function LoginPage() {
   }
 
   return (
+    <GuestGuard>
     <main className="container main-pad" style={{ maxWidth: 420 }}>
       <h1 className="page-title">Sign in</h1>
       <p className="page-sub">Access your monitoring dashboard.</p>
@@ -63,5 +65,6 @@ export default function LoginPage() {
         No account? <Link href="/register">Register</Link>
       </p>
     </main>
+    </GuestGuard>
   );
 }
