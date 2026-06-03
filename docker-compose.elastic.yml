@@ -1,17 +1,19 @@
 # Elastic Stack — APM (latency, throughput, errors) in Kibana
 # Start: make elastic-up
 # Needs ~2GB RAM for Elasticsearch + Kibana
+# ES 8.14+ with xpack.apm_data.enabled (no Fleet/security required for local lab)
 
 services:
   elasticsearch:
     profiles: [elastic]
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.14.3
     container_name: uptimelab-elasticsearch
     restart: unless-stopped
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
       - xpack.security.http.ssl.enabled=false
+      - xpack.apm_data.enabled=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - cluster.routing.allocation.disk.threshold_enabled=false
     volumes:
@@ -27,7 +29,7 @@ services:
 
   kibana:
     profiles: [elastic]
-    image: docker.elastic.co/kibana/kibana:8.12.2
+    image: docker.elastic.co/kibana/kibana:8.14.3
     container_name: uptimelab-kibana
     restart: unless-stopped
     environment:
@@ -47,17 +49,23 @@ services:
 
   apm-server:
     profiles: [elastic]
-    image: docker.elastic.co/apm/apm-server:8.12.2
+    image: docker.elastic.co/apm/apm-server:8.14.3
     container_name: uptimelab-apm-server
     restart: unless-stopped
     user: root
-    command: ["apm-server", "-e", "-E", "apm-server.host=0.0.0.0:8200", "-E", "output.elasticsearch.hosts=[\"http://elasticsearch:9200\"]", "-E", "setup.kibana.host=http://kibana:5601", "-E", "setup.template.enabled=true"]
+    command:
+      - apm-server
+      - -e
+      - -E
+      - apm-server.host=0.0.0.0:8200
+      - -E
+      - output.elasticsearch.hosts=["http://elasticsearch:9200"]
+      - -E
+      - apm-server.data_streams.wait_for_integration=false
     ports:
       - "8200:8200"
     depends_on:
       elasticsearch:
-        condition: service_healthy
-      kibana:
         condition: service_healthy
 
   # Merged into main backend service when --profile elastic is used
@@ -69,6 +77,7 @@ services:
       ELASTIC_APM_TRANSACTION_SAMPLE_RATE: "1.0"
       ELASTIC_APM_CAPTURE_BODY: errors
       ELASTIC_APM_LOG_LEVEL: Info
+      ELASTIC_APM_CENTRAL_CONFIG: "false"
     depends_on:
       apm-server:
         condition: service_started

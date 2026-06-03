@@ -1,14 +1,9 @@
-# APM Server — receives traces from UptimeLab .NET API, stores in Elasticsearch
+# Reference config (compose uses -E flags). ES 8.14+ apm_data plugin supplies index templates.
 apm-server:
   host: "0.0.0.0:8200"
+
+apm-server.data_streams.wait_for_integration: false
 
 output.elasticsearch:
   hosts: ["http://elasticsearch:9200"]
   protocol: "http"
-
-setup.kibana:
-  host: "http://kibana:5601"
-  protocol: "http"
-
-setup.template.enabled: true
-setup.template.overwrite: false
