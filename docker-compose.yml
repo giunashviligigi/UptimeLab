@@ -1,0 +1,69 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: uptimelab-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-uptime}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-uptime_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-uptimelab}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-uptime} -d ${POSTGRES_DB:-uptimelab}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: uptimelab-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: >-
+        Host=postgres;Port=5432;Database=${POSTGRES_DB:-uptimelab};
+        Username=${POSTGRES_USER:-uptime};Password=${POSTGRES_PASSWORD:-uptime_secret}
+      Jwt__Key: ${JWT_SECRET:-CHANGE_ME_use_a_long_random_secret_at_least_32_chars}
+      Jwt__Issuer: UptimeLab
+      Jwt__Audience: UptimeLab
+      Cors__Origins__0: ${FRONTEND_URL:-http://localhost:3000}
+    ports:
+      - "${BACKEND_PORT:-5001}:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:5001}
+    container_name: uptimelab-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:5001}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+
+  # Optional: uncomment to put Nginx in front of frontend + backend
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: uptimelab-nginx
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./nginx/conf.d:/etc/nginx/conf.d:ro
+  #   depends_on:
+  #     - frontend
+  #     - backend
+
+volumes:
+  postgres_data:
