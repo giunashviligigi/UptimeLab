@@ -4,6 +4,20 @@ export default function LandingPage() {
   return (
     <main>
       <section className="hero container">
+        <p
+          style={{
+            display: "inline-block",
+            marginBottom: "1rem",
+            padding: "0.35rem 0.85rem",
+            borderRadius: "999px",
+            background: "var(--bg-elevated)",
+            color: "var(--accent)",
+            fontSize: "0.85rem",
+            fontWeight: 600,
+          }}
+        >
+          DevOps lab — feature branch demo
+        </p>
         <h1>Monitor your websites with UptimeLab</h1>
         <p>
           Self-hosted uptime monitoring built for DevOps learning. Register,

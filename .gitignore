@@ -10,6 +10,8 @@ frontend/out/
 # Env
 .env
 .env.local
+.env.staging
+.env.production.local
 
 # OS / IDE
 .DS_Store

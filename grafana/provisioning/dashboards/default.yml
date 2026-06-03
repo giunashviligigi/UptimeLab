@@ -1,0 +1,10 @@
+apiVersion: 1
+providers:
+  - name: UptimeLab
+    orgId: 1
+    folder: UptimeLab
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards

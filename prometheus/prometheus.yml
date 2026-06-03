@@ -1,9 +1,10 @@
-# Example Prometheus config — run Prometheus separately or add to compose later
 global:
   scrape_interval: 15s
+  evaluation_interval: 15s
 
 scrape_configs:
   - job_name: uptimelab-api
     metrics_path: /metrics
     static_configs:
+      # Service name on Docker Compose network (use with: make obs-up)
       - targets: ["backend:8080"]

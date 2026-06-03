@@ -1,0 +1,38 @@
+# Local production simulation — separate ports/DB from dev & staging.
+# Usage: make prod-local-up
+
+name: uptimelab-production-local
+
+services:
+  postgres:
+    container_name: uptimelab-prod-postgres
+    ports:
+      - "${POSTGRES_PORT:-5434}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-uptimelab_prod}
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+
+  backend:
+    container_name: uptimelab-prod-backend
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: >-
+        Host=postgres;Port=5432;Database=${POSTGRES_DB:-uptimelab_prod};
+        Username=${POSTGRES_USER:-uptime};Password=${POSTGRES_PASSWORD:-uptime_secret}
+      Cors__Origins__0: ${FRONTEND_URL:-http://localhost:3010}
+    ports:
+      - "${BACKEND_PORT:-5010}:8080"
+
+  frontend:
+    container_name: uptimelab-prod-frontend
+    build:
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:5010}
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:5010}
+    ports:
+      - "${FRONTEND_PORT:-3010}:3000"
+
+volumes:
+  postgres_prod_data:

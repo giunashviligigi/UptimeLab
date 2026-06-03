@@ -1,0 +1,52 @@
+{
+  "title": "UptimeLab Overview",
+  "uid": "uptimelab-overview",
+  "tags": ["uptimelab", "lab"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "HTTP requests (rate)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_received_total[1m])) by (code, method)",
+          "legendFormat": "{{method}} {{code}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Request duration p95",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Process memory (bytes)",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 8 },
+      "targets": [
+        { "expr": "process_working_set_bytes", "legendFormat": "working set" }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "DB connections (idle)",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 8 },
+      "targets": [
+        {
+          "expr": "npgsql_db_client_connections_usage{state=\"idle\"}",
+          "legendFormat": "idle"
+        }
+      ]
+    }
+  ]
+}

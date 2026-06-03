@@ -2,6 +2,8 @@
 
 Self-hosted website monitoring platform for DevOps practice.
 
+**Real-life company lab:** follow **[docs/DEVOPS_LAB.md](docs/DEVOPS_LAB.md)** for branch workflow, staging/prod environments, CI/CD, and Grafana drills. Quick start: `make help`.
+
 **Stack:** Next.js (TypeScript) · .NET 8 Web API · PostgreSQL · EF Core · JWT · Docker Compose
 
 ## Project structure
@@ -20,9 +22,15 @@ UpTimeLab/
 │   ├── app/          # Pages (App Router)
 │   ├── components/
 │   └── lib/          # API client & auth helpers
-├── nginx/            # Reverse proxy config (optional)
-├── prometheus/       # Scrape config for Grafana later
+├── docs/DEVOPS_LAB.md    # Company-style lab exercises
+├── scripts/              # ci-local, smoke-test
+├── deploy/               # GHCR pull compose for servers
+├── grafana/              # Dashboards & provisioning
+├── nginx/                # Reverse proxy config (optional)
+├── prometheus/           # Metrics scrape config
+├── Makefile              # dev / staging / prod / obs commands
 ├── docker-compose.yml
+├── docker-compose.staging.yml
 └── .env.example
 ```
 

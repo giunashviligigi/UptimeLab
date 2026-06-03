@@ -1,0 +1,48 @@
+# Server deploy — pull pre-built images from GitHub Container Registry (no build on server).
+# On VPS: copy this file + .env, set GHCR_IMAGE_PREFIX, then docker compose pull && up -d
+#
+# Example GHCR_IMAGE_PREFIX=ghcr.io/myuser/uptimelab
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      retries: 5
+
+  backend:
+    image: ${GHCR_IMAGE_PREFIX}/backend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: >-
+        Host=postgres;Port=5432;Database=${POSTGRES_DB};
+        Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      Jwt__Key: ${JWT_SECRET}
+      Jwt__Issuer: UptimeLab
+      Jwt__Audience: UptimeLab
+      Cors__Origins__0: ${FRONTEND_URL}
+    ports:
+      - "${BACKEND_PORT:-5001}:8080"
+
+  frontend:
+    image: ${GHCR_IMAGE_PREFIX}/frontend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+
+volumes:
+  postgres_data:

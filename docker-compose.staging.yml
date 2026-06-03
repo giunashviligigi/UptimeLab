@@ -1,0 +1,38 @@
+# Staging overrides — simulates company "develop" environment on your machine.
+# Usage: make staging-up  (or docker compose -f docker-compose.yml -f docker-compose.staging.yml --env-file .env.staging up -d --build)
+
+name: uptimelab-staging
+
+services:
+  postgres:
+    container_name: uptimelab-staging-postgres
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-uptimelab_staging}
+    volumes:
+      - postgres_staging_data:/var/lib/postgresql/data
+
+  backend:
+    container_name: uptimelab-staging-backend
+    environment:
+      ASPNETCORE_ENVIRONMENT: Staging
+      ConnectionStrings__DefaultConnection: >-
+        Host=postgres;Port=5432;Database=${POSTGRES_DB:-uptimelab_staging};
+        Username=${POSTGRES_USER:-uptime};Password=${POSTGRES_PASSWORD:-uptime_secret}
+      Cors__Origins__0: ${FRONTEND_URL:-http://localhost:3100}
+    ports:
+      - "${BACKEND_PORT:-5002}:8080"
+
+  frontend:
+    container_name: uptimelab-staging-frontend
+    build:
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:5002}
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:5002}
+    ports:
+      - "${FRONTEND_PORT:-3100}:3000"
+
+volumes:
+  postgres_staging_data:
