@@ -1,7 +1,9 @@
 # Server deploy — pull pre-built images from GitHub Container Registry (no build on server).
 # On VPS: copy this file + .env, set GHCR_IMAGE_PREFIX, then docker compose pull && up -d
 #
-# Example GHCR_IMAGE_PREFIX=ghcr.io/myuser/uptimelab
+# Images (GHCR tags must be lowercase):
+#   ghcr.io/<owner>/uptimelab-backend:latest
+#   ghcr.io/<owner>/uptimelab-frontend:latest
 
 services:
   postgres:
@@ -19,7 +21,7 @@ services:
       retries: 5
 
   backend:
-    image: ${GHCR_IMAGE_PREFIX}/backend:${IMAGE_TAG:-latest}
+    image: ${BACKEND_IMAGE:-ghcr.io/giunashviligigi/uptimelab-backend}:${IMAGE_TAG:-latest}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -37,7 +39,7 @@ services:
       - "${BACKEND_PORT:-5001}:8080"
 
   frontend:
-    image: ${GHCR_IMAGE_PREFIX}/frontend:${IMAGE_TAG:-latest}
+    image: ${FRONTEND_IMAGE:-ghcr.io/giunashviligigi/uptimelab-frontend}:${IMAGE_TAG:-latest}
     restart: unless-stopped
     depends_on:
       - backend
