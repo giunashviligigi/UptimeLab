@@ -56,4 +56,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build images (smoke test)
-        run: docker compose build
+        run: |
+          # Retry — Docker Hub / registry pulls often timeout on GitHub runners
+          for attempt in 1 2 3; do
+            echo "docker compose build — attempt $attempt/3"
+            if docker compose build; then
+              exit 0
+            fi
+            sleep 20
+          done
+          exit 1
