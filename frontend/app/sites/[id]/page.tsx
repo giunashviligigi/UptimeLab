@@ -30,7 +30,14 @@ export default function SiteDetailPage() {
     return () => clearInterval(timer);
   }, [load]);
 
+  async function togglePause() {
+    if (!data) return;
+    await api.setPause(id, !data.isPaused);
+    load();
+  }
+
   const latest = data?.history[0];
+  const displayStatus = data?.isPaused ? "PAUSED" : latest?.status ?? "UNKNOWN";
 
   return (
     <AuthGuard>
@@ -41,40 +48,71 @@ export default function SiteDetailPage() {
         <h1 className="page-title" style={{ marginTop: "1rem" }}>
           {data?.name || data?.url || "Site details"}
         </h1>
-        {data?.name && (
-          <p className="page-sub">{data.url}</p>
-        )}
+        {data?.name && <p className="page-sub">{data.url}</p>}
 
         {error && <p style={{ color: "var(--danger)" }}>{error}</p>}
 
-        {latest && (
+        {data && (
           <div className="grid-stats" style={{ marginTop: "1rem" }}>
             <div className="card">
-              <div className="stat-label">Current status</div>
+              <div className="stat-label">Status</div>
               <div style={{ marginTop: "0.5rem" }}>
-                <StatusBadge status={latest.status} />
+                <StatusBadge status={displayStatus} />
               </div>
             </div>
             <div className="card">
-              <div className="stat-label">HTTP code</div>
+              <div className="stat-label">Uptime 24h</div>
               <div className="stat-value" style={{ fontSize: "1.5rem" }}>
-                {latest.httpStatusCode ?? "—"}
+                {data.uptimePercent24h != null
+                  ? `${data.uptimePercent24h}%`
+                  : "—"}
               </div>
             </div>
             <div className="card">
-              <div className="stat-label">Response time</div>
+              <div className="stat-label">Uptime 7d</div>
               <div className="stat-value" style={{ fontSize: "1.5rem" }}>
-                {latest.responseTimeMs} ms
+                {data.uptimePercent7d != null
+                  ? `${data.uptimePercent7d}%`
+                  : "—"}
               </div>
             </div>
+            {latest && (
+              <>
+                <div className="card">
+                  <div className="stat-label">HTTP</div>
+                  <div className="stat-value" style={{ fontSize: "1.5rem" }}>
+                    {latest.httpStatusCode ?? "—"}
+                  </div>
+                </div>
+                <div className="card">
+                  <div className="stat-label">Response</div>
+                  <div className="stat-value" style={{ fontSize: "1.5rem" }}>
+                    {latest.responseTimeMs} ms
+                  </div>
+                </div>
+              </>
+            )}
           </div>
+        )}
+
+        {data && (
+          <button
+            type="button"
+            className="btn btn-ghost"
+            style={{ marginTop: "1rem" }}
+            onClick={togglePause}
+          >
+            {data.isPaused ? "Resume monitoring" : "Pause monitoring"}
+          </button>
         )}
 
         <h2 style={{ margin: "1.5rem 0 0.75rem" }}>Check history</h2>
         {!data?.history.length ? (
           <div className="card">
             <p style={{ color: "var(--text-muted)" }}>
-              No checks yet. Wait up to 60 seconds for the first result.
+              {data?.isPaused
+                ? "Monitoring is paused."
+                : "No checks yet. Wait up to 60 seconds."}
             </p>
           </div>
         ) : (

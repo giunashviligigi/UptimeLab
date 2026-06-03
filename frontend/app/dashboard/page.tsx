@@ -38,13 +38,18 @@ export default function DashboardPage() {
     load();
   }
 
+  async function togglePause(site: Site) {
+    await api.setPause(site.id, !site.isPaused);
+    load();
+  }
+
   return (
     <AuthGuard>
       <main className="container main-pad">
         <h1 className="page-title">Dashboard</h1>
         <p className="page-sub">
-          Welcome{user ? `, ${user.displayName}` : ""}. Sites refresh every 30s;
-          backend checks every 60s.
+          Welcome{user ? `, ${user.displayName}` : ""}. Auto-refresh 30s · checks
+          every 60s.
         </p>
 
         {stats && (
@@ -52,14 +57,28 @@ export default function DashboardPage() {
             <StatCard label="Total sites" value={stats.totalSites} />
             <StatCard label="Online" value={stats.onlineSites} />
             <StatCard label="Offline" value={stats.offlineSites} />
+            <StatCard label="Paused" value={stats.pausedSites} />
             <StatCard
-              label="Avg response time"
+              label="Uptime (24h)"
+              value={
+                stats.overallUptimePercent24h != null
+                  ? stats.overallUptimePercent24h
+                  : "—"
+              }
+              suffix={
+                stats.overallUptimePercent24h != null ? "%" : undefined
+              }
+            />
+            <StatCard
+              label="Avg response"
               value={
                 stats.averageResponseTimeMs != null
                   ? Math.round(stats.averageResponseTimeMs)
                   : "—"
               }
-              suffix={stats.averageResponseTimeMs != null ? "ms" : undefined}
+              suffix={
+                stats.averageResponseTimeMs != null ? "ms" : undefined
+              }
             />
           </div>
         )}
@@ -75,9 +94,14 @@ export default function DashboardPage() {
           }}
         >
           <h2>Monitored sites</h2>
-          <Link href="/sites/new" className="btn btn-primary">
-            Add site
-          </Link>
+          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+            <Link href="/settings" className="btn btn-ghost">
+              Alerts
+            </Link>
+            <Link href="/sites/new" className="btn btn-primary">
+              Add site
+            </Link>
+          </div>
         </div>
 
         {error && <p style={{ color: "var(--danger)" }}>{error}</p>}
@@ -94,8 +118,9 @@ export default function DashboardPage() {
             <table>
               <thead>
                 <tr>
-                  <th>Name / URL</th>
+                  <th>Site</th>
                   <th>Status</th>
+                  <th>24h uptime</th>
                   <th>HTTP</th>
                   <th>Response</th>
                   <th>Last check</th>
@@ -119,9 +144,29 @@ export default function DashboardPage() {
                           {site.url}
                         </div>
                       )}
+                      {site.lastErrorMessage && site.status === "DOWN" && (
+                        <div
+                          style={{
+                            fontSize: "0.75rem",
+                            color: "var(--danger)",
+                            marginTop: "0.25rem",
+                            maxWidth: 220,
+                          }}
+                          title={site.lastErrorMessage}
+                        >
+                          {site.lastErrorMessage.length > 60
+                            ? `${site.lastErrorMessage.slice(0, 60)}…`
+                            : site.lastErrorMessage}
+                        </div>
+                      )}
                     </td>
                     <td>
                       <StatusBadge status={site.status} />
+                    </td>
+                    <td>
+                      {site.uptimePercent24h != null
+                        ? `${site.uptimePercent24h}%`
+                        : "—"}
                     </td>
                     <td>{site.httpStatusCode ?? "—"}</td>
                     <td>
@@ -135,14 +180,36 @@ export default function DashboardPage() {
                         : "Pending"}
                     </td>
                     <td>
-                      <button
-                        type="button"
-                        className="btn btn-danger"
-                        style={{ padding: "0.35rem 0.75rem", fontSize: "0.8rem" }}
-                        onClick={() => remove(site.id)}
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "0.35rem",
+                          flexWrap: "wrap",
+                        }}
                       >
-                        Delete
-                      </button>
+                        <button
+                          type="button"
+                          className="btn btn-ghost"
+                          style={{
+                            padding: "0.35rem 0.6rem",
+                            fontSize: "0.75rem",
+                          }}
+                          onClick={() => togglePause(site)}
+                        >
+                          {site.isPaused ? "Resume" : "Pause"}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-danger"
+                          style={{
+                            padding: "0.35rem 0.6rem",
+                            fontSize: "0.75rem",
+                          }}
+                          onClick={() => remove(site.id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -153,7 +220,7 @@ export default function DashboardPage() {
 
         {user && (
           <p style={{ marginTop: "1.5rem", color: "var(--text-muted)" }}>
-            Public status page:{" "}
+            Public status:{" "}
             <Link href={`/status/${user.userId}`}>
               /status/{user.userId}
             </Link>

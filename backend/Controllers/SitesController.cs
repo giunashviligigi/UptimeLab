@@ -47,6 +47,28 @@ public class SitesController : ControllerBase
         return NoContent();
     }
 
+    [HttpPatch("{id:guid}/pause")]
+    public async Task<ActionResult<SiteResponse>> SetPause(
+        Guid id,
+        [FromBody] SetPauseRequest request,
+        CancellationToken ct)
+    {
+        var site = await _sites.SetPauseAsync(GetUserId(), id, request.IsPaused, ct);
+        if (site is null) return NotFound();
+        return Ok(site);
+    }
+
+    [HttpGet("{id:guid}/uptime")]
+    public async Task<ActionResult<SiteUptimeResponse>> GetUptime(
+        Guid id,
+        [FromQuery] int hours = 24,
+        CancellationToken ct = default)
+    {
+        var uptime = await _sites.GetUptimeAsync(GetUserId(), id, hours, ct);
+        if (uptime is null) return NotFound();
+        return Ok(uptime);
+    }
+
     [HttpGet("{id:guid}/history")]
     public async Task<ActionResult<SiteHistoryResponse>> GetHistory(Guid id, [FromQuery] int limit = 50, CancellationToken ct = default)
     {

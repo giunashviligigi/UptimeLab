@@ -15,7 +15,10 @@ public record SiteResponse(
     int? HttpStatusCode,
     int? ResponseTimeMs,
     DateTime? LastCheckedAt,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    bool IsPaused,
+    string? LastErrorMessage,
+    double? UptimePercent24h);
 
 public record CheckResultResponse(
     Guid Id,
@@ -29,6 +32,9 @@ public record SiteHistoryResponse(
     Guid SiteId,
     string Url,
     string? Name,
+    bool IsPaused,
+    double? UptimePercent24h,
+    double? UptimePercent7d,
     IReadOnlyList<CheckResultResponse> History);
 
 public record PublicStatusSiteDto(
@@ -37,7 +43,8 @@ public record PublicStatusSiteDto(
     string Status,
     int? HttpStatusCode,
     int? ResponseTimeMs,
-    DateTime? LastCheckedAt);
+    DateTime? LastCheckedAt,
+    bool IsPaused);
 
 public record PublicStatusResponse(
     Guid UserId,
@@ -48,19 +55,24 @@ public record DashboardStatsResponse(
     int TotalSites,
     int OnlineSites,
     int OfflineSites,
-    double? AverageResponseTimeMs);
+    int PausedSites,
+    double? AverageResponseTimeMs,
+    double? OverallUptimePercent24h);
 
 public static class DtoMappers
 {
-    public static SiteResponse ToSiteResponse(MonitoredSite site) => new(
+    public static SiteResponse ToSiteResponse(MonitoredSite site, double? uptime24h = null) => new(
         site.Id,
         site.Url,
         site.Name,
-        site.LastStatus.ToString().ToUpperInvariant(),
+        site.IsPaused ? "PAUSED" : site.LastStatus.ToString().ToUpperInvariant(),
         site.LastHttpStatusCode,
         site.LastResponseTimeMs,
         site.LastCheckedAt,
-        site.CreatedAt);
+        site.CreatedAt,
+        site.IsPaused,
+        site.LastErrorMessage,
+        uptime24h);
 
     public static CheckResultResponse ToCheckResultResponse(CheckResult r) => new(
         r.Id,

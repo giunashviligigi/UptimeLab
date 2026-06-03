@@ -16,6 +16,13 @@ public class MonitoredSite
     public int? LastHttpStatusCode { get; set; }
     public int? LastResponseTimeMs { get; set; }
     public DateTime? LastCheckedAt { get; set; }
+    public string? LastErrorMessage { get; set; }
+
+    /// <summary>When true, the worker skips HTTP checks.</summary>
+    public bool IsPaused { get; set; }
+
+    /// <summary>Last status we sent a webhook for (avoids duplicate alerts).</summary>
+    public SiteStatus? LastNotifiedStatus { get; set; }
 
     public User User { get; set; } = null!;
     public ICollection<CheckResult> CheckResults { get; set; } = new List<CheckResult>();

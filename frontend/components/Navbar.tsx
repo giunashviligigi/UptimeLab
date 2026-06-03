@@ -35,6 +35,7 @@ export function Navbar() {
         {loggedIn ? (
           <>
             <Link href="/dashboard">Dashboard</Link>
+            <Link href="/settings">Alerts</Link>
             <Link href="/sites/new">Add site</Link>
             {user && (
               <Link href={`/status/${user.userId}`}>Public status</Link>

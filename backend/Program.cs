@@ -29,9 +29,16 @@ builder.Services.AddHttpClient("uptime-checker", client =>
     client.DefaultRequestHeaders.UserAgent.ParseAdd("UptimeLab-Monitor/1.0");
 });
 
+builder.Services.AddHttpClient("webhook", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(10);
+});
+
 // --- Application services ---
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ISiteService, SiteService>();
+builder.Services.AddScoped<IUserSettingsService, UserSettingsService>();
+builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IWebsiteChecker, WebsiteChecker>();
 builder.Services.AddHostedService<SiteMonitoringWorker>();
@@ -131,12 +138,27 @@ app.MapMetrics();
 
 app.MapControllers();
 
-// Health check for load balancers / Docker / Nginx
-app.MapGet("/health", () => Results.Ok(new
+// Health check for load balancers / Docker / Nginx (includes DB)
+app.MapGet("/health", async (AppDbContext db) =>
 {
-    status = "healthy",
-    service = "UptimeLab.Api",
-    timestamp = DateTime.UtcNow
-}));
+    try
+    {
+        var canConnect = await db.Database.CanConnectAsync();
+        if (!canConnect)
+            return Results.Json(new { status = "unhealthy", reason = "database" }, statusCode: 503);
+
+        return Results.Ok(new
+        {
+            status = "healthy",
+            service = "UptimeLab.Api",
+            database = "connected",
+            timestamp = DateTime.UtcNow
+        });
+    }
+    catch
+    {
+        return Results.Json(new { status = "unhealthy", reason = "database" }, statusCode: 503);
+    }
+});
 
 app.Run();

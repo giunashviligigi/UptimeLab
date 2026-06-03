@@ -20,6 +20,7 @@ public class AppDbContext : DbContext
             e.Property(x => x.Email).HasMaxLength(256);
             e.Property(x => x.DisplayName).HasMaxLength(128);
             e.Property(x => x.Role).HasMaxLength(32);
+            e.Property(x => x.WebhookUrl).HasMaxLength(2048);
         });
 
         modelBuilder.Entity<MonitoredSite>(e =>

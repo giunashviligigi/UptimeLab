@@ -1,6 +1,5 @@
 /**
  * Central API client for UptimeLab backend.
- * Set NEXT_PUBLIC_API_URL in .env (e.g. http://localhost:5001).
  */
 import { getToken, clearAuth } from "./auth";
 import type {
@@ -9,6 +8,7 @@ import type {
   PublicStatus,
   Site,
   SiteHistory,
+  UserSettings,
 } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
@@ -73,8 +73,27 @@ export const api = {
   deleteSite: (id: string) =>
     request<void>(`/api/sites/${id}`, { method: "DELETE" }, true),
 
-  getHistory: (id: string, limit = 50) =>
+  setPause: (id: string, isPaused: boolean) =>
+    request<Site>(
+      `/api/sites/${id}/pause`,
+      { method: "PATCH", body: JSON.stringify({ isPaused }) },
+      true
+    ),
+
+  getHistory: (id: string, limit = 100) =>
     request<SiteHistory>(`/api/sites/${id}/history?limit=${limit}`, {}, true),
+
+  getSettings: () => request<UserSettings>("/api/settings", {}, true),
+
+  updateSettings: (webhookUrl: string | null, webhookAlertsEnabled: boolean) =>
+    request<UserSettings>(
+      "/api/settings",
+      {
+        method: "PUT",
+        body: JSON.stringify({ webhookUrl, webhookAlertsEnabled }),
+      },
+      true
+    ),
 
   getPublicStatus: (userId: string) =>
     request<PublicStatus>(`/api/public/status/${userId}`),

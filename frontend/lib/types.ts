@@ -15,13 +15,18 @@ export interface Site {
   responseTimeMs: number | null;
   lastCheckedAt: string | null;
   createdAt: string;
+  isPaused: boolean;
+  lastErrorMessage: string | null;
+  uptimePercent24h: number | null;
 }
 
 export interface DashboardStats {
   totalSites: number;
   onlineSites: number;
   offlineSites: number;
+  pausedSites: number;
   averageResponseTimeMs: number | null;
+  overallUptimePercent24h: number | null;
 }
 
 export interface CheckResult {
@@ -37,7 +42,15 @@ export interface SiteHistory {
   siteId: string;
   url: string;
   name: string | null;
+  isPaused: boolean;
+  uptimePercent24h: number | null;
+  uptimePercent7d: number | null;
   history: CheckResult[];
+}
+
+export interface UserSettings {
+  webhookUrl: string | null;
+  webhookAlertsEnabled: boolean;
 }
 
 export interface PublicStatus {
@@ -50,5 +63,6 @@ export interface PublicStatus {
     httpStatusCode: number | null;
     responseTimeMs: number | null;
     lastCheckedAt: string | null;
+    isPaused: boolean;
   }[];
 }

@@ -13,5 +13,9 @@ public class User
     public string Role { get; set; } = "User";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    /// <summary>HTTPS webhook (Slack-compatible) for DOWN/UP alerts.</summary>
+    public string? WebhookUrl { get; set; }
+    public bool WebhookAlertsEnabled { get; set; }
+
     public ICollection<MonitoredSite> MonitoredSites { get; set; } = new List<MonitoredSite>();
 }
