@@ -2,7 +2,9 @@
 
 Self-hosted website monitoring platform for DevOps practice.
 
-**Real-life company lab:** follow **[docs/DEVOPS_LAB.md](docs/DEVOPS_LAB.md)** for branch workflow, staging/prod environments, CI/CD, and Grafana drills. Quick start: `make help`.
+**Real-life company lab:** follow **[docs/DEVOPS_LAB.md](docs/DEVOPS_LAB.md)** for branch workflow, staging/prod environments, and CI/CD. Quick start: `make help`.
+
+**APM (Kibana):** `make elastic-up` — API latency, throughput, and error rates. See **[docs/ELASTIC_APM.md](docs/ELASTIC_APM.md)**.
 
 **Stack:** Next.js (TypeScript) · .NET 8 Web API · PostgreSQL · EF Core · JWT · Docker Compose
 

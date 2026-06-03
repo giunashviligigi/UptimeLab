@@ -218,8 +218,31 @@ export default function DashboardPage() {
           </div>
         )}
 
+        <div
+          className="card"
+          style={{ marginTop: "1.5rem", display: "flex", flexWrap: "wrap", gap: "1rem", alignItems: "center" }}
+        >
+          <div>
+            <strong>Observability</strong>
+            <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginTop: "0.25rem" }}>
+              Prometheus/Grafana metrics + Elastic APM in Kibana (latency, throughput, errors).
+            </p>
+          </div>
+          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+            <a href="http://localhost:5601/app/apm/services" target="_blank" rel="noreferrer" className="btn btn-primary">
+              Kibana APM
+            </a>
+            <a href="http://localhost:3002" target="_blank" rel="noreferrer" className="btn btn-ghost">
+              Grafana
+            </a>
+            <a href="http://localhost:9090" target="_blank" rel="noreferrer" className="btn btn-ghost">
+              Prometheus
+            </a>
+          </div>
+        </div>
+
         {user && (
-          <p style={{ marginTop: "1.5rem", color: "var(--text-muted)" }}>
+          <p style={{ marginTop: "1rem", color: "var(--text-muted)" }}>
             Public status:{" "}
             <Link href={`/status/${user.userId}`}>
               /status/{user.userId}

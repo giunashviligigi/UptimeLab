@@ -1,0 +1,77 @@
+# Elastic Stack — APM (latency, throughput, errors) in Kibana
+# Start: make elastic-up
+# Needs ~2GB RAM for Elasticsearch + Kibana
+
+services:
+  elasticsearch:
+    profiles: [elastic]
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
+    container_name: uptimelab-elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - cluster.routing.allocation.disk.threshold_enabled=false
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 60s
+
+  kibana:
+    profiles: [elastic]
+    image: docker.elastic.co/kibana/kibana:8.12.2
+    container_name: uptimelab-kibana
+    restart: unless-stopped
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - xpack.security.enabled=false
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:5601/api/status | grep -q 'available' || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 90s
+
+  apm-server:
+    profiles: [elastic]
+    image: docker.elastic.co/apm/apm-server:8.12.2
+    container_name: uptimelab-apm-server
+    restart: unless-stopped
+    user: root
+    command: ["apm-server", "-e", "-E", "apm-server.host=0.0.0.0:8200", "-E", "output.elasticsearch.hosts=[\"http://elasticsearch:9200\"]", "-E", "setup.kibana.host=http://kibana:5601", "-E", "setup.template.enabled=true"]
+    ports:
+      - "8200:8200"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+
+  # Merged into main backend service when --profile elastic is used
+  backend:
+    environment:
+      ELASTIC_APM_SERVER_URL: http://apm-server:8200
+      ELASTIC_APM_SERVICE_NAME: uptimelab-api
+      ELASTIC_APM_ENVIRONMENT: docker
+      ELASTIC_APM_TRANSACTION_SAMPLE_RATE: "1.0"
+      ELASTIC_APM_CAPTURE_BODY: errors
+      ELASTIC_APM_LOG_LEVEL: Info
+    depends_on:
+      apm-server:
+        condition: service_started
+
+volumes:
+  elasticsearch_data:
