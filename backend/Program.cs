@@ -1,4 +1,5 @@
 using System.Text;
+using Elastic.Apm.NetCoreAll;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -9,6 +10,12 @@ using UptimeLab.Api.Data;
 using UptimeLab.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Elastic APM → Kibana: API latency, throughput, error rates (enabled when ELASTIC_APM_SERVER_URL is set)
+if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ELASTIC_APM_SERVER_URL")))
+{
+    builder.Services.AddAllElasticApm();
+}
 
 // --- Logging (basic structured console logging) ---
 builder.Logging.ClearProviders();
